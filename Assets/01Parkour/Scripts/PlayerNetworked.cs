@@ -1,0 +1,153 @@
+using System.Collections;
+using System.Collections.Generic;
+using Fusion;
+using UnityEngine;
+using Fusion.Addons.SimpleKCC;
+
+public class PlayerNetworked : NetworkBehaviour
+{
+    [Header("References")]
+    public SimpleKCC simpleKCC;
+    public PlayerInput playerInput;
+    public LayerMask groundLayer;
+    private GameObject cameraHolder;
+    private GameObject playerCameraPos;
+
+    [Header("Player Movement")]
+    public float viewSensitivity = 2.0f;
+    public float walkSpeed = 5f;
+    public float runSpeed = 10f;
+    public float upGravity = 20f;
+    public float downGravity = 40f;
+    private float xRotation = 0.0f;
+    private float yRotation = 0.0f;
+
+    [Header("Player Accelerations")]
+    public float groundAcceleration = 55f;
+    public float groundDesacceleration = 25f;
+    public float airAcceleration = 25f;
+    public float airDesacceleration = 1.3f;
+
+    [Networked]
+    private NetworkBool _isJumping { get; set; }
+
+    private CapsuleCollider kccCollider;
+    private Vector3 _moveVelocity;
+
+    private PlayerState playerState;
+    enum PlayerState
+    {
+        walking,
+        running,
+        inAir,
+        crouching,
+    }
+
+    void Awake()
+    {
+        this.kccCollider = this.GetComponentInChildren<CapsuleCollider>();
+        Debug.Log("PlayerNetworked: CapsuleCollider found " + this.kccCollider.name);
+        if (!this.kccCollider)
+        {
+            Debug.Log("PlayerNetworked: CapsuleCollider not found");
+            return;
+        }
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void Update()
+    {
+        if (!HasStateAuthority) return;
+        // this.kccCollider.center = new Vector3(0f, 0f, 0f);
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        this.HandlePlayerState();
+        this.ProcessInput();
+
+        if (this._isJumping)
+        {
+            this._isJumping = false;
+        }
+
+        this.playerInput.ResetInputs();
+    }
+
+    void LateUpdate()
+    {
+        // If the player has not authority, exit the function
+        if (!HasStateAuthority) return;
+
+        if (!this.cameraHolder) this.cameraHolder = GameObject.Find("CameraHolder");
+        if (!this.playerCameraPos) this.playerCameraPos = this.transform.Find("CameraPos").gameObject;
+        this.cameraHolder.transform.position = this.playerCameraPos.transform.position;
+    }
+
+    private void HandlePlayerState()
+    {
+        bool isGrounded = this.IsGrounded();
+        if (isGrounded && playerInput.input.sprint) this.playerState = PlayerState.running;
+        else if (isGrounded && playerInput.input.crouch) this.playerState = PlayerState.crouching;
+        else if (!isGrounded) this.playerState = PlayerState.inAir;
+        else this.playerState = PlayerState.walking;
+    }
+
+    private void ProcessInput()
+    {
+        // look rotation of the camera/player
+        Debug.Log("PlayerNetworked: this is player input " + playerInput.input.lookDirection);
+        float jumpImpulse = 0f;
+        if(this.playerState != PlayerState.inAir && playerInput.input.jump)
+        {
+            jumpImpulse = 10f;
+            this._isJumping = true;
+        }
+        float speed = this.playerState == PlayerState.running ? this.runSpeed : this.walkSpeed;
+        float gravity = simpleKCC.RealVelocity.y > 0f ? this.upGravity : this.downGravity;
+        // this.simpleKCC.SetGravity(gravity);
+
+        float acceleration = this.playerState == PlayerState.inAir ? this.airAcceleration : this.groundAcceleration;
+
+        this.yRotation += playerInput.input.lookDirection.x * this.viewSensitivity * Time.deltaTime;
+        this.xRotation -= playerInput.input.lookDirection.y * this.viewSensitivity * Time.deltaTime;
+        this.xRotation = Mathf.Clamp(this.xRotation, -90f, 90f);
+
+        this.transform.localRotation = Quaternion.Euler(0f, this.yRotation, 0.0f);
+        this.cameraHolder.transform.localRotation = Quaternion.Euler(this.xRotation, 0.0f, 0.0f);
+        var moveDirection = new Vector3(playerInput.input.moveDirection.x, 0, playerInput.input.moveDirection.y) * speed;
+
+        if (moveDirection == Vector3.zero)
+        {
+            acceleration = this.playerState == PlayerState.inAir ? this.airDesacceleration : this.groundDesacceleration;
+        }
+        else
+        {
+            // this code is for rotate the player object to the direction of the movement
+            // var currentRotation = this.simpleKCC.TransformRotation;
+            // var targetRotation = Quaternion.LookRotation(moveDirection);
+            // var nextRotation = Quaternion.Lerp(currentRotation, targetRotation, this.rotationSpeed * Runner.DeltaTime);
+            // this.simpleKCC.SetLookRotation(nextRotation.eulerAngles);
+            // this code is for rotate the player object to the direction of the movement
+
+            acceleration = this.playerState == PlayerState.inAir ? this.airAcceleration : this.groundAcceleration;
+        }
+
+        this._moveVelocity = Vector3.Lerp(this._moveVelocity, moveDirection, acceleration * Runner.DeltaTime);
+
+        if (this.simpleKCC.ProjectOnGround(this._moveVelocity, out Vector3 moveVelocity))
+        {
+            this._moveVelocity = moveVelocity;
+        }
+
+        this.simpleKCC.Move(this._moveVelocity, jumpImpulse);
+    }
+
+    private bool IsGrounded()
+    {
+        float playerHeight = this.transform.localScale.y;
+        return Physics.Raycast(this.transform.position, Vector3.down, playerHeight + 0.2f, this.groundLayer);
+    }
+}
