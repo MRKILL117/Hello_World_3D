@@ -14,13 +14,11 @@ public class PlayerNetworked : NetworkBehaviour
     private GameObject playerCameraPos;
 
     [Header("Player Movement")]
-    public float viewSensitivity = 2.0f;
+    public float viewSensitivity = 1.0f;
     public float walkSpeed = 5f;
     public float runSpeed = 10f;
     public float upGravity = 20f;
     public float downGravity = 40f;
-    private float xRotation = 0.0f;
-    private float yRotation = 0.0f;
 
     [Header("Player Accelerations")]
     public float groundAcceleration = 55f;
@@ -52,7 +50,7 @@ public class PlayerNetworked : NetworkBehaviour
             Debug.Log("PlayerNetworked: CapsuleCollider not found");
             return;
         }
-
+        // this.kccCollider.center = new Vector3(0, 0f, 0);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -60,7 +58,6 @@ public class PlayerNetworked : NetworkBehaviour
     void Update()
     {
         if (!HasStateAuthority) return;
-        // this.kccCollider.center = new Vector3(0f, 0f, 0f);
     }
 
     public override void FixedUpdateNetwork()
@@ -98,7 +95,6 @@ public class PlayerNetworked : NetworkBehaviour
     private void ProcessInput()
     {
         // look rotation of the camera/player
-        Debug.Log("PlayerNetworked: this is player input " + playerInput.input.lookDirection);
         float jumpImpulse = 0f;
         if(this.playerState != PlayerState.inAir && playerInput.input.jump)
         {
@@ -111,14 +107,18 @@ public class PlayerNetworked : NetworkBehaviour
 
         float acceleration = this.playerState == PlayerState.inAir ? this.airAcceleration : this.groundAcceleration;
 
-        this.yRotation += playerInput.input.lookDirection.x * this.viewSensitivity * Time.deltaTime;
-        this.xRotation -= playerInput.input.lookDirection.y * this.viewSensitivity * Time.deltaTime;
-        this.xRotation = Mathf.Clamp(this.xRotation, -90f, 90f);
+        // Get the player's input and clamp the xRotation
+        float xRotation = Mathf.Clamp(this.playerInput.input.lookDirection.x * this.viewSensitivity, -90f, 90f);
+        float yRotation = this.playerInput.input.lookDirection.y * this.viewSensitivity;
 
-        this.transform.localRotation = Quaternion.Euler(0f, this.yRotation, 0.0f);
-        this.cameraHolder.transform.localRotation = Quaternion.Euler(this.xRotation, 0.0f, 0.0f);
-        var moveDirection = new Vector3(playerInput.input.moveDirection.x, 0, playerInput.input.moveDirection.y) * speed;
+        // this code is for rotate the camera object based on the mouse input
+        this.cameraHolder.transform.rotation = Quaternion.Euler(xRotation, yRotation, 0.0f);
 
+        // this code is for rotate the player object based on the mouse input
+        // We opnly rotate the player object in the y axis the x axis is controlled by the camera
+        this.simpleKCC.SetLookRotation(new Vector3(0.0F, yRotation, 0.0f));
+
+        var moveDirection = this.simpleKCC.TransformRotation * new Vector3(playerInput.input.moveDirection.x, 0, playerInput.input.moveDirection.y) * speed;
         if (moveDirection == Vector3.zero)
         {
             acceleration = this.playerState == PlayerState.inAir ? this.airDesacceleration : this.groundDesacceleration;

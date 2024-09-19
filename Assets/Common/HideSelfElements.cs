@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class HideSelfElements : NetworkBehaviour
 {
@@ -14,7 +15,9 @@ public class HideSelfElements : NetworkBehaviour
             return;
         }
         GameObject eyes = this.transform.Find("Eyes").gameObject;
-        if (eyes) eyes.SetActive(false);
+        // this line hides the rendering but it stills cast shadows, and unfortunately, the shadows are still in the player view
+        // eyes.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+        eyes.SetActive(false);
     }
 
     // Update is called once per frame

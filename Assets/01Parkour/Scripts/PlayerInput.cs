@@ -35,7 +35,7 @@ public class PlayerInput : MonoBehaviour
     {
         // Get the player's input
         _input.moveDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        _input.lookDirection = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
+        _input.lookDirection += new Vector2(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"));
         _input.jump = Input.GetKey(KeyCode.Space);
         _input.sprint = Input.GetKey(KeyCode.LeftShift);
         _input.crouch = Input.GetKey(KeyCode.LeftControl);

@@ -288,6 +288,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 1024
+  viewSensitivity: 1
   walkSpeed: 5
   runSpeed: 10
   upGravity: 20
@@ -320,7 +321,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9366cdf58e4346942971f2905bba30ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  elements: []
 --- !u!1 &5587845925592457566
 GameObject:
   m_ObjectHideFlags: 0
