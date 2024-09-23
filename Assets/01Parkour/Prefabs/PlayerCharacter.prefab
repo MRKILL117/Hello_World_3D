@@ -291,6 +291,7 @@ MonoBehaviour:
   viewSensitivity: 1
   walkSpeed: 5
   runSpeed: 10
+  jumpForce: 5
   upGravity: 20
   downGravity: 40
   groundAcceleration: 55

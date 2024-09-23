@@ -17,6 +17,7 @@ public class PlayerNetworked : NetworkBehaviour
     public float viewSensitivity = 1.0f;
     public float walkSpeed = 5f;
     public float runSpeed = 10f;
+    public float jumpForce = 5f;
     public float upGravity = 20f;
     public float downGravity = 40f;
 
@@ -98,7 +99,7 @@ public class PlayerNetworked : NetworkBehaviour
         float jumpImpulse = 0f;
         if(this.playerState != PlayerState.inAir && playerInput.input.jump)
         {
-            jumpImpulse = 10f;
+            jumpImpulse = this.jumpForce;
             this._isJumping = true;
         }
         float speed = this.playerState == PlayerState.running ? this.runSpeed : this.walkSpeed;
