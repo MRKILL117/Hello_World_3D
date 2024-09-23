@@ -70,6 +70,10 @@ public class RunnerManager : MonoBehaviour
         }
         else
         {
+            if (!!this.LoadingCanvas)
+            {
+                this.LoadingCanvas.SetActive(false);
+            }
             Debug.LogError("Failed to start server: " + startTask.Result.ShutdownReason);
         }
     }
