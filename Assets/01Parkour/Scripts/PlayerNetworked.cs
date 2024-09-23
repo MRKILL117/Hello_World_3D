@@ -30,7 +30,6 @@ public class PlayerNetworked : NetworkBehaviour
     [Networked]
     private NetworkBool _isJumping { get; set; }
 
-    private CapsuleCollider kccCollider;
     private Vector3 _moveVelocity;
 
     private PlayerState playerState;
@@ -44,14 +43,6 @@ public class PlayerNetworked : NetworkBehaviour
 
     void Awake()
     {
-        this.kccCollider = this.GetComponentInChildren<CapsuleCollider>();
-        Debug.Log("PlayerNetworked: CapsuleCollider found " + this.kccCollider.name);
-        if (!this.kccCollider)
-        {
-            Debug.Log("PlayerNetworked: CapsuleCollider not found");
-            return;
-        }
-        // this.kccCollider.center = new Vector3(0, 0f, 0);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }

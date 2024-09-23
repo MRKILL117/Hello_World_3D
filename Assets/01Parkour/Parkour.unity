@@ -1185,6 +1185,10 @@ PrefabInstance:
       propertyPath: SortKey
       value: 4049500281
       objectReference: {fileID: 0}
+    - target: {fileID: 8154093177223742307, guid: 6ef1bbfe602319642bb4edb6e9ce6680, type: 3}
+      propertyPath: playerPrefab
+      value: 
+      objectReference: {fileID: 4493962877047133236, guid: f2951094d571832469f4c9f70a14cf38, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

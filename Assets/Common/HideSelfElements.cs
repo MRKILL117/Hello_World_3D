@@ -14,7 +14,7 @@ public class HideSelfElements : NetworkBehaviour
             Debug.Log("HideSelfElements: No state authority");
             return;
         }
-        GameObject eyes = this.transform.Find("Eyes").gameObject;
+        GameObject eyes = this.transform.Find("Render").gameObject.transform.Find("Eyes").gameObject;
         // this line hides the rendering but it stills cast shadows, and unfortunately, the shadows are still in the player view
         // eyes.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.ShadowsOnly;
         eyes.SetActive(false);
