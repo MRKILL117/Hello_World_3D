@@ -95,18 +95,17 @@ public class PlayerNetworked : NetworkBehaviour
 
     private void ProcessInput()
     {
-        // look rotation of the camera/player
         float jumpImpulse = 0f;
+        float speed = this.playerState == PlayerState.running ? this.runSpeed : this.walkSpeed;
+        float acceleration = this.playerState == PlayerState.inAir ? this.airAcceleration : this.groundAcceleration;
+        float gravity = simpleKCC.RealVelocity.y > 0f ? this.upGravity : this.downGravity;
         if(this.playerState != PlayerState.inAir && playerInput.input.jump)
         {
             jumpImpulse = this.jumpForce;
             this._isJumping = true;
         }
-        float speed = this.playerState == PlayerState.running ? this.runSpeed : this.walkSpeed;
-        float gravity = simpleKCC.RealVelocity.y > 0f ? this.upGravity : this.downGravity;
+        // When setting up gravity character starts to float indefinitely
         // this.simpleKCC.SetGravity(gravity);
-
-        float acceleration = this.playerState == PlayerState.inAir ? this.airAcceleration : this.groundAcceleration;
 
         // Get the player's input and clamp the xRotation
         float xRotation = Mathf.Clamp(this.playerInput.input.lookDirection.x * this.viewSensitivity, -90f, 90f);
@@ -114,7 +113,6 @@ public class PlayerNetworked : NetworkBehaviour
 
         // this code is for rotate the camera object based on the mouse input
         this.cameraHolder.transform.rotation = Quaternion.Euler(xRotation, yRotation, 0.0f);
-
         // this code is for rotate the player object based on the mouse input
         // We opnly rotate the player object in the y axis the x axis is controlled by the camera
         this.simpleKCC.SetLookRotation(new Vector3(0.0F, yRotation, 0.0f));
